@@ -95,19 +95,32 @@ Social networking sites
 Portfolio or blog platforms
 
 
+
+
+
+
+
 **🤝 Contributing**
 Want to improve this boilerplate?
 Fork the repo and submit a pull request!
 
-bash
-Copy
-Edit
+```bash
 git checkout -b feature/your-feature
 git commit -m "Added a new feature"
 git push origin feature/your-feature
+```
+
+
+
+
+
 
 📝 **License**
 **Licensed under the MIT License.**
+
+
+
+
 
 👨‍💻 **Author**
 Built and maintained by **Arjun Kanani**
