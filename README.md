@@ -124,6 +124,8 @@ git push origin feature/your-feature
 
 👨‍💻 **Author**
 Built and maintained by **Arjun Kanani**
+
+
 📬 Contact: **arjunkanani2@gmail.com**
 
 
