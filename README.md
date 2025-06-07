@@ -67,7 +67,7 @@ MONGO_URI=your_mongodb_connection
 JWT_SECRET=your_jwt_secret
 ```
 
-###**3. Frontend Setup:**
+**3. Frontend Setup:**
 ```bash
 cd ../client
 npm install
