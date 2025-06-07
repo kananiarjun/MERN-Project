@@ -58,23 +58,21 @@ mern-starter/
 ```bash
 git clone https://github.com/your-username/mern-starter.git
 cd mern-starter
+```
 
-
-### 1. Clone the Repository
-cd server
-npm install
-
-
-###Create a .env file in the /server folder:
+**Create a .env file in the /server folder:**
+```bash
 PORT=5000
 MONGO_URI=your_mongodb_connection
 JWT_SECRET=your_jwt_secret
+```
 
-
-###3. Frontend Setup:
+###**3. Frontend Setup:**
+```bash
 cd ../client
 npm install
 npm start
+```
 
 
 | Method | Route              | Description         |
@@ -85,7 +83,7 @@ npm start
 | GET    | /api/products/\:id | Get product details |
 
 
-📌 Use Cases
+###📌 Use Cases
 eCommerce platforms
 
 Admin dashboards
@@ -97,7 +95,7 @@ Social networking sites
 Portfolio or blog platforms
 
 
-🤝 Contributing
+###🤝 Contributing
 Want to improve this boilerplate?
 Fork the repo and submit a pull request!
 
@@ -108,10 +106,10 @@ git checkout -b feature/your-feature
 git commit -m "Added a new feature"
 git push origin feature/your-feature
 
-📝 License
+###📝 **License**
 **Licensed under the MIT License.**
 
-👨‍💻 Author
+###👨‍💻 **Author**
 Built and maintained by **Arjun Kanani**
 📬 Contact: **arjunkanani2@gmail.com**
 
