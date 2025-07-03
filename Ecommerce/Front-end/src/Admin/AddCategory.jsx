@@ -1,45 +1,49 @@
+import React, { useState } from 'react';
 import axios from 'axios';
-import React from 'react'
-import { useState } from 'react'
 
 const AddCategory = () => {
-    const [category, setCategory] = useState();
+  const [category, setCategory] = useState('');
+  const [loading, setLoading] = useState(false);
 
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post("http://localhost:3000/api/categories", { name: category });
-            alert("Added category Successfully");
-        }
-        catch (err) {
-            alert(err)
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!category.trim()) {
+      alert('Please enter a category name');
+      return;
     }
-    return (
-            <div style={{ maxWidth: '400px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '10px' }}>
-                    <label htmlFor="category" style={{ display: 'block', marginBottom: '5px' }}>
-                        Category Name:
-                    </label>
-                    <input
-                        type="text"
-                        id="category"
-                        name="category"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                        placeholder="Enter category name"
-                    />
-                </div>
-                <button type="submit" style={{ padding: '10px 20px' }}>
-                    Submit
-                </button>
-            </form>
-        </div>
-        
-    )
-}
+    try {
+      setLoading(true);
+      await axios.post('http://localhost:5000/api/categories', { name: category.trim() });
+      alert('Category added successfully');
+      setCategory('');
+    } catch (error) {
+      alert(error.response?.data?.message || error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export default AddCategory
+  return (
+    <div style={{ maxWidth: 400, margin: '20px auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="category" style={{ display: 'block', marginBottom: 5 }}>
+          Category Name:
+        </label>
+        <input
+          type="text"
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          placeholder="Enter category name"
+          disabled={loading}
+          style={{ width: '100%', padding: 8, marginBottom: 15 }}
+        />
+        <button type="submit" disabled={loading} style={{ padding: '10px 20px' }}>
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default AddCategory;

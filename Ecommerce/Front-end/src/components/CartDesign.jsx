@@ -1,126 +1,96 @@
-import React from 'react'
-import { FaRegTrashCan } from 'react-icons/fa6'
+import React from 'react';
+import { FaRegTrashCan } from 'react-icons/fa6';
+import { useCart } from '../context/CartCOntext';
 
 const CartDesign = () => {
-    return (
-        <>
-            <section className='cart-section' style={{ margin: "100px 0" }}>
-                <div className="container">
-                    <div className="row">
-                        <div className="col-lg-7">
-                            <div className="cart-items">
-                                <div className="cart-header mb-3">
-                                    <div className="row">
-                                        <div className="col-lg-6">
-                                            <h5>Product</h5>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <h5>Price</h5>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <h5>Quantity</h5>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <h5>Total</h5>
-                                        </div>
-                                    </div>
-                                </div>
+  const { cartItems, removeFromCart } = useCart();
 
-                                <div className="cart-item">
-                                    <div className="row">
-                                        <div className="col-lg-6">
-                                            <div className="product-info d-flex align-items-center justify-content-between ">
-                                                <div className="product-image">
-                                                    <img src="https://bootstrapmade.com/content/demo/eStore/assets/img/product/product-2.webp" className='img-fluid' alt="" />
-                                                </div>
-                                                <div className="product-detail">
-                                                    <h6 class="product-title">Lorem ipsum dolor sit amet</h6>
-                                                    <div class="product-meta">
-                                                        <span class="product-color">Color: Black</span>
-                                                        <span class="product-size">Size: M</span>
-                                                    </div>
-                                                    <div className="remove-product">
-                                                        <a href='#'><FaRegTrashCan /> Remove</a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <div class="price-tag">
-                                                <span class="current-price">$89.99</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <div class="item-total">
-                                                <span>$89.99</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-lg-2">
-                                            <div class="item-total">
-                                                <span>$89.99</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shipping = subtotal >= 300 ? 0 : 4.99;
+  const tax = subtotal * 0.1;
+  const total = subtotal + tax + shipping;
 
-                            </div>
-                        </div>
-                        <div className="col-lg-1"></div>
-                        <div className="col-lg-3">
-                            <div className="cart-summary">
-                                <h4 class="summary-title">Order Summary</h4>
-                                <div class="summary-item d-flex justify-content-between">
-                                    <span class="summary-label">Subtotal</span>
-                                    <span class="summary-value">$269.96</span>
-                                </div>
-
-                                <div class="summary-item shipping-item">
-                                    <span class="summary-label">Shipping</span>
-                                    <div class="shipping-options">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="shipping" id="standard" checked="" />
-                                            <label class="form-check-label" for="standard">
-                                                Standard Delivery - $4.99
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="shipping" id="express" />
-                                            <label class="form-check-label" for="express">
-                                                Express Delivery - $12.99
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="shipping" id="free" />
-                                            <label class="form-check-label" for="free">
-                                                Free Shipping (Orders over $300)
-                                            </label>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-
-                                <div class="summary-item">
-                                    <span class="summary-label">Tax</span>
-                                    <span class="summary-value">$27.00</span>
-                                </div>
-
-                                <div class="summary-item disc ">
-                                    <span class="summary-label">Discount</span>
-                                    <span class="summary-value">-$0.00</span>
-                                </div>
-
-                                <div class="summary-total">
-                                    <span class="summary-label">Total</span>
-                                    <span class="summary-value">$301.95</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  return (
+    <section className="cart-section" style={{ margin: '100px 0' }}>
+      <div className="container">
+        <div className="row">
+          <div className="col-lg-7">
+            <div className="cart-items">
+              <div className="cart-header mb-3">
+                <div className="row">
+                  <div className="col-lg-6"><h5>Product</h5></div>
+                  <div className="col-lg-2"><h5>Price</h5></div>
+                  <div className="col-lg-2"><h5>Quantity</h5></div>
+                  <div className="col-lg-2"><h5>Total</h5></div>
                 </div>
-            </section>
-        </>
-    )
-}
+              </div>
 
-export default CartDesign
+              {cartItems.map((item) => (
+                <div className="cart-item mb-3" key={item.id}>
+                  <div className="row">
+                    <div className="col-lg-6">
+                      <div className="product-info d-flex align-items-center justify-content-between">
+                        <div className="product-image">
+                          <img src={item.imgUrl} className="img-fluid" alt={item.title} style={{ width: 80, height: 80, objectFit: 'cover' }} />
+                        </div>
+                        <div className="product-detail ms-2">
+                          <h6 className="product-title">{item.title}</h6>
+                          <div className="remove-product">
+                            <button onClick={() => removeFromCart(item.id)} className="btn btn-link p-0 text-danger">
+                              <FaRegTrashCan /> Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-lg-2">
+                      <span>${item.price.toFixed(2)}</span>
+                    </div>
+                    <div className="col-lg-2">
+                      <span>{item.quantity}</span>
+                    </div>
+                    <div className="col-lg-2">
+                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="col-lg-1"></div>
+
+          <div className="col-lg-3">
+            <div className="cart-summary">
+              <h4 className="summary-title">Order Summary</h4>
+
+              <div className="summary-item d-flex justify-content-between">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+
+              <div className="summary-item d-flex justify-content-between">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+              </div>
+
+              <div className="summary-item d-flex justify-content-between">
+                <span>Tax (10%)</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+
+              <div className="summary-total d-flex justify-content-between mb-3">
+                <strong>Total</strong>
+                <strong>${total.toFixed(2)}</strong>
+              </div>
+
+              <button className="btn btn-primary w-100">Proceed to Checkout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default CartDesign;

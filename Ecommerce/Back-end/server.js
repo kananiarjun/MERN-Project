@@ -154,8 +154,91 @@ app.post('/verify-otp', async (req, res) => {
   });
 });
 
+
+// Get all categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add a new category
+app.post('/api/categories', async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
+
+    // Check if category exists
+    const existing = await Category.findOne({ name: name.trim() });
+    if (existing) {
+      return res.status(400).json({ message: 'Category already exists' });
+    }
+
+    const category = new Category({ name: name.trim() });
+    await category.save();
+    res.status(201).json(category);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
+// PUT /api/add/product/:id
+app.put('/api/add/product/:id', upload.single('image'), async (req, res) => {
+  try {
+    const id = req.params.id; // keep as string (MongoDB ObjectId)
+    const updateData = {
+      name: req.body.name,
+      price: req.body.price,
+      des: req.body.des,
+    };
+    if (req.file) {
+      updateData.image = req.file.filename;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json({ message: 'Product updated', product: updatedProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to save product', error: error.message });
+  }
+});
+
+// DELETE /api/add/product/:id
+
+// Assuming you already required express, mongoose, and your Product model
+
+app.delete('/api/add/product/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ message: 'Failed to delete product', error: error.message });
+  }
+});
+
+
+
 // Start Server
-const PORT = 3000;
+const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

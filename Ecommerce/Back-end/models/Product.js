@@ -1,10 +1,24 @@
 const mongoose = require('mongoose');
 
-const productSchema = new mongoose.Schema({
-   name: String,
-    price: Number,
-    description: String,
-    image:String
-})
+const reviewSchema = new mongoose.Schema({
+  name: String,
+  comment: String,
+  date: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-module.exports = mongoose.model("Product",productSchema)
+const productSchema = new mongoose.Schema({
+  name: String,
+  price: Number,
+  des: String,
+  image: String,
+  category: String,  // add this
+});
+
+
+// When you create a product, Mongoose automatically adds _id of type ObjectId
+const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;
