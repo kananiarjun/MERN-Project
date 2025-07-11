@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaEye, FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
+
+const ProductDetails = () =>  {
+  const { id } = useParams(); // this is the product _id
+  // use 'id' to fetch data from backend or state
+};
+
 
 const Card = ({ _id, title, imgUrl, price, brand, category }) => {
 
@@ -17,13 +24,15 @@ const Card = ({ _id, title, imgUrl, price, brand, category }) => {
   return (
     <div className="col-lg-4 mb-4">
       <div className="card shadow-sm h-100">
-          <Link
-            to={`/products/${_id}`}
-            className="btn btn-outline-primary d-flex align-items-center"
-            style={{ fontSize: '18px', padding: '10px 16px', width: '120px' }}
-          >
-            <FaEye className="me-1" /> View
-          </Link>
+        <Link
+          to={`/products/${_id}`}
+          className="btn btn-outline-primary d-flex align-items-center"
+          style={{ fontSize: '18px', padding: '10px 16px', width: '120px' }}
+        >
+          <FaEye className="me-1" /> View
+        </Link>
+        
+
         <img
           src={Array.isArray(imgUrl) ? imgUrl[0] : imgUrl}
           className="card-img-top"
@@ -33,14 +42,14 @@ const Card = ({ _id, title, imgUrl, price, brand, category }) => {
 
         <div className="card-body d-flex flex-column justify-content-between">
           <div>
-            <h6 className="text-muted text-uppercase mb-1">{category}</h6>
+            <h6 className="text-muted text-uppercase mb-1"><strong>Category:</strong> {category} </h6>
+            <h6>id: {_id}</h6>
             <h5 className="card-title">{title}</h5>
             <p className="card-text mb-1">Brand: {brand}</p>
             <p className="card-text fw-bold">₹{price}</p>
           </div>
 
           <div className="d-flex justify-content-between align-items-center mt-2 w-50">
-
             <button
               onClick={handleAddToWishlist}
               className="btn btn-outline-danger btn-sm d-flex align-items-center"

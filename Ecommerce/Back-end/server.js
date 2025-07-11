@@ -1,159 +1,161 @@
-// // server.js
-const express = require('express')
-const mongoose = require('mongoose')
-const app = express()
-const port = 3000
-const cors = require('cors')
-const path = require('path')
-const multer = require('multer')
-const Product = require('./models/Product')
-const categoryRoutes = require("./routes/category");
-
-app.use(cors());
-app.use(express.json());
-app.use("/uploads", express.static("uploads"))
-
-
-mongoose.connect('mongodb+srv://arjun:12345@cluster0.uw9hlyy.mongodb.net/')
-  .then(() => console.log("MongoDB connection is done"))
-  .catch(() => console.log("Connection fail"))
-
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname))
-})
-
-const upload = multer({ storage })
-
-// app.get('/api', (req, res) => {
-//   res.send('Hello World!')
-// })
-
-app.post('/api/add/product', upload.single("image"), async (req, res) => {
-
-  const { name, price, des } = req.body;
-
-  const product = new Product({
-    name,
-    price,
-    description: des,
-    image: req.file?.filename
-  })
-  await product.save()
-  console.log("req.body ====>", req.body)
-  res.json(product)
-})
-
-app.get('/api/add/product',async(req,res)=>{
-  const product = await Product.find();
-
-  res.json(product);
-})
-
-
-app.use('/api/categories',categoryRoutes)
-
-
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
+const multer = require('multer');
+const session = require('express-session');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 
-// In-memory OTP store (for demo purposes only)
-let otpStore = {};
+const app = express();
+const PORT = 5000;
 
-// Nodemailer Transport Configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'easys8560@gmail.com',           // Replace with your Gmail
-    pass: 'dvul ppot hzxm szue'            // Use a Gmail App Password
-  }
+// Models
+const User = require('./models/User');
+const Product = require('./models/Product');
+const Category = require('./models/Category');
+
+// Routes
+const categoryRoutes = require('./routes/category');
+
+// === Middleware Setup ===
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
+
+// === Session Setup ===
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+// === MongoDB Connection ===
+mongoose.connect('mongodb+srv://arjun:12345@cluster0.uw9hlyy.mongodb.net/', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch((err) => console.error('Could not connect to MongoDB:', err));
+
+// === View Engine ===
+app.set('view engine', 'ejs');
+
+// === File Upload Config ===
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
+const upload = multer({ storage });
 
-// 1. Send OTP Endpoint
-app.post('/send-otp', async (req, res) => {
-  const { email } = req.body;
+// === Product Endpoints ===
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore[email] = otp;
-
+// Add Product
+app.post('/api/add/product', upload.single('image'), async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: '"Easy Shop" <easys8560@gmail.com>',
-      to: email,
-      subject: 'Your OTP Code',
-      text: `Your One-Time Password (OTP) is: ${otp}`,
+    const { name, price, des, category, brand } = req.body;
+
+    const product = new Product({
+      name,
+      price,
+      description: des,
+      category,
+      brand,
+      image: req.file?.filename
     });
 
-    console.log(`OTP sent to ${email}: ${otp}`);
-    res.json({ success: true, message: 'OTP sent to email' });
+    await product.save();
+    res.json(product);
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    console.error('Add Product Error:', error);
+    res.status(500).json({ message: 'Failed to save product' });
   }
 });
 
-// 2. Verify OTP Endpoint
-app.post('/verify-otp', async (req, res) => {
-  const { email, otp } = req.body;
-
-  console.log('Verifying OTP for:', email);
-  console.log('Expected OTP:', otpStore[email]);
-  console.log('Received OTP:', otp);
-
-  if (!otpStore[email]) {
-    return res.status(400).json({
-      success: false,
-      message: 'No OTP found for this email. Please request a new one.',
-    });
-  }
-
-  if (otpStore[email] !== otp) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid OTP. Please check and try again.',
-    });
-  }
-
-  // OTP is correct
-  delete otpStore[email];
-
-  // Send login success email with image
+// Get Products
+app.get('/api/add/product', async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: '"Easy Shop" <easys8560@gmail.com>',
-      to: email,
-      subject: '🎉 Login Successful - Happy Shopping!',
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #333;">
-          <h2>🎉 Congratulations!</h2>
-          <p>You have successfully logged in to <strong>Easy Shop</strong>.</p>
-          <p>We wish you a wonderful shopping experience. 🛒</p>
-          <br/>
-          <p>Best regards,<br/>Easy Shop Team</p>
-          <hr style="margin: 20px 0;" />
-          <div style="text-align: center;">
-            <img src="https://dynamic.design.com/preview/design/f0227b0e-e99c-49fb-bf0a-876153a0b900"
-                 alt="Happy Shopping"
-                 style="max-width: 100%; height: auto; border-radius: 8px;" />
-          </div>
-        </div>
-      `
-    });
-
-    console.log(`Login confirmation sent to ${email}`);
+    const products = await Product.find();
+    res.json(products);
   } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    // Do not block response if email fails
+    res.status(500).json({ message: 'Failed to fetch products' });
   }
-
-  res.json({
-    success: true,
-    message: 'OTP verified successfully. You are logged in.',
-  });
 });
 
+// Update Product
+app.put('/api/add/product/:id', upload.single('image'), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updateData = {
+      name: req.body.name,
+      price: req.body.price,
+      description: req.body.des,
+      category: req.body.category,
+      brand: req.body.brand,
+    };
+
+    if (req.file) {
+      updateData.image = req.file.filename;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json({ message: 'Product updated', product: updatedProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to update product', error: error.message });
+  }
+});
+
+// Delete Product
+app.delete('/api/add/product/:id', async (req, res) => {
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ message: 'Failed to delete product', error: error.message });
+  }
+});
+
+// GET /api/products/:id
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    res.json(product);
+  } catch (err) {
+    res.status(404).json({ message: 'Product not found' });
+  }
+});
+// POST /api/products/:id/review
+app.post('/api/products/:id/review', async (req, res) => {
+  const { name, comment } = req.body;
+  const product = await Product.findById(req.params.id);
+  if (!product) return res.status(404).json({ message: 'Product not found' });
+
+  const newReview = { name, comment, date: new Date() };
+  product.reviews = product.reviews || [];
+  product.reviews.push(newReview);
+  await product.save();
+
+  res.json({ message: 'Review added', product });
+});
+
+
+// === Category Endpoints ===
 
 // Get all categories
 app.get('/api/categories', async (req, res) => {
@@ -161,6 +163,7 @@ app.get('/api/categories', async (req, res) => {
     const categories = await Category.find();
     res.json(categories);
   } catch (err) {
+    console.error('Error fetching categories:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -169,11 +172,11 @@ app.get('/api/categories', async (req, res) => {
 app.post('/api/categories', async (req, res) => {
   try {
     const { name } = req.body;
+
     if (!name || name.trim() === '') {
       return res.status(400).json({ message: 'Category name is required' });
     }
 
-    // Check if category exists
     const existing = await Category.findOne({ name: name.trim() });
     if (existing) {
       return res.status(400).json({ message: 'Category already exists' });
@@ -187,61 +190,86 @@ app.post('/api/categories', async (req, res) => {
   }
 });
 
+// === OTP Routes ===
+let otpStore = {}; // In-memory OTP store
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'easys8560@gmail.com',
+    pass: 'dvul ppot hzxm szue'
+  }
+});
 
-// PUT /api/add/product/:id
-app.put('/api/add/product/:id', upload.single('image'), async (req, res) => {
+// Send OTP
+app.post('/send-otp', async (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore[email] = otp;
+
   try {
-    const id = req.params.id; // keep as string (MongoDB ObjectId)
-    const updateData = {
-      name: req.body.name,
-      price: req.body.price,
-      des: req.body.des,
+    await transporter.sendMail({
+      from: '"Easy Shop" <easys8560@gmail.com>',
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Your OTP is: ${otp}`
+    });
+
+    console.log(`OTP sent to ${email}: ${otp}`);
+    res.json({ success: true, message: 'OTP sent' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ success: false, message: 'Failed to send OTP' });
+  }
+});
+
+// Verify OTP
+app.post('/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!otpStore[email]) {
+    return res.status(400).json({ success: false, message: 'OTP not found. Please request a new one.' });
+  }
+
+  if (otpStore[email] !== otp) {
+    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  }
+
+  delete otpStore[email];
+
+  // Optionally send success email here...
+
+  res.json({ success: true, message: 'OTP verified successfully' });
+});
+
+// === Auth Routes ===
+
+// Login
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await User.findOne({ username });
+
+  if (user && bcrypt.compareSync(password, user.password)) {
+    req.session.user = {
+      username: user.username,
+      role: user.role
     };
-    if (req.file) {
-      updateData.image = req.file.filename;
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
-    if (!updatedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.json({ message: 'Product updated', product: updatedProduct });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to save product', error: error.message });
+    return res.redirect('/dashboard');
+  } else {
+    return res.status(400).send('Invalid username or password');
   }
 });
 
-// DELETE /api/add/product/:id
-
-// Assuming you already required express, mongoose, and your Product model
-
-app.delete('/api/add/product/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const deletedProduct = await Product.findByIdAndDelete(id);
-
-    if (!deletedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.status(200).json({ message: 'Product deleted successfully' });
-  } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ message: 'Failed to delete product', error: error.message });
-  }
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).send('Error logging out');
+    res.redirect('/home');
+  });
 });
 
-
-
-// Start Server
-const PORT = 5000;
+// === Start Server ===
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-
-

@@ -3,35 +3,45 @@ import { useParams } from 'react-router-dom';
 import Button from '../components/Button';
 
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Capture product ID from URL
   const [product, setProduct] = useState(null);
   const [reviewForm, setReviewForm] = useState({ name: '', comment: '' });
 
-  const fetchProduct = () => {
-    fetch(`http://localhost:5000/api/products/${id}`)
-      .then((res) => res.json())
-      .then((data) => setProduct(data))
-      .catch((err) => console.error(err));
-  };
-
   useEffect(() => {
-    fetchProduct();
+    if (id) {
+      fetchProduct();
+    }
   }, [id]);
+const fetchProduct = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/products/${_id}`);
+    if (!res.ok) {
+      throw new Error('Failed to fetch product');
+    }
+    const data = await res.json();
+    setProduct(data);
+  } catch (err) {
+    console.error('Fetch product error:', err.message);
+  }
+};
 
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-
-    fetch(`http://localhost:5000/api/products/${id}/review`, {
+const handleReviewSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch(`http://localhost:5000/api/products/${id}/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(reviewForm),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setReviewForm({ name: '', comment: '' });
-        fetchProduct(); // Refresh product with new reviews
-      });
-  };
+    });
+
+    if (!res.ok) throw new Error('Failed to submit review');
+
+    setReviewForm({ name: '', comment: '' });
+    fetchProduct(); // Refresh reviews
+  } catch (err) {
+    console.error('Review submit error:', err.message);
+  }
+};
 
   if (!product) return <p>Loading...</p>;
 
@@ -48,7 +58,7 @@ const ProductDetail = () => {
         <div className="col-lg-6">
           <h2>{product.name}</h2>
           <p>₹{product.price}</p>
-          <p>{product.des}</p>
+          <p>{product.description || product.des}</p>
           <div className="d-flex gap-3 my-3">
             <Button title="Add to Cart" className="w-50" />
             <Button title="Buy Now" className="w-50" />
@@ -80,9 +90,9 @@ const ProductDetail = () => {
 
       <hr />
       <h4>Reviews</h4>
-      {product.reviews && product.reviews.length > 0 ? (
+      {product.reviews?.length > 0 ? (
         product.reviews
-          .slice() // clone array
+          .slice()
           .reverse()
           .map((rev, idx) => (
             <div key={idx} className="mb-3 p-3 border rounded shadow-sm">

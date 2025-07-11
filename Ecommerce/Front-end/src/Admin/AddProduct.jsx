@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AddProduct = () => {
-  // Added brand to form state
   const [form, setForm] = useState({ name: '', price: '', des: '', category: '', brand: '' });
   const [image, setImage] = useState(null);
   const [products, setProducts] = useState([]);
@@ -18,13 +17,10 @@ const AddProduct = () => {
     }
   };
 
-
-
   const fetchProducts = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/add/product');
-      const productsWithId = res.data.map((p) => ({ ...p, id: p._id }));
-      setProducts(productsWithId);
+      setProducts(res.data);
     } catch (error) {
       alert('Error fetching products');
     }
@@ -42,7 +38,7 @@ const AddProduct = () => {
     formData.append('price', form.price);
     formData.append('des', form.des);
     formData.append('category', form.category);
-    formData.append('brand', form.brand); // Append brand
+    formData.append('brand', form.brand);
     if (image) formData.append('image', image);
 
     try {
@@ -65,7 +61,7 @@ const AddProduct = () => {
       setImage(null);
       setEditingId(null);
       fetchProducts();
-    } catch (error) {
+    } catch {
       alert('Failed to save product');
     }
   };
@@ -76,9 +72,9 @@ const AddProduct = () => {
       price: product.price,
       des: product.des,
       category: product.category || '',
-      brand: product.brand || '',  // Set brand in edit
+      brand: product.brand || '',
     });
-    setEditingId(product.id);
+    setEditingId(product._id);
     setImage(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -89,10 +85,16 @@ const AddProduct = () => {
         await axios.delete(`http://localhost:5000/api/add/product/${id}`);
         alert('Product deleted successfully');
         fetchProducts();
-      } catch (error) {
+      } catch {
         alert('Failed to delete product');
       }
     }
+  };
+
+  // Helper to get category name by ID
+  const getCategoryName = (categoryId) => {
+    const cat = categories.find(c => c._id === categoryId);
+    return cat ? cat.name : 'N/A';
   };
 
   return (
@@ -245,22 +247,19 @@ const AddProduct = () => {
             onChange={(e) => setForm({ ...form, price: e.target.value })}
             required
           />
-
           <label>Category:</label>
           <select
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
-            
           >
-            <option value="">-- Select Category --</option>
+            <option value="">Select category</option>
             {categories.map((cat) => (
-              <option key={cat._id} value={p.category}>
+              <option key={cat._id} value={cat._id}>
                 {cat.name}
               </option>
             ))}
           </select>
 
-          {/* New Brand field */}
           <label>Brand:</label>
           <input
             type="text"
@@ -277,21 +276,21 @@ const AddProduct = () => {
         <h2>All Products</h2>
         <div className="product-list">
           {products.map((p) => (
-            <div className="product-card" key={p.id}>
+            <div className="product-card" key={p._id}>
               <img
                 src={`http://localhost:5000/uploads/${p.image}`}
                 alt={p.name}
               />
               <h3>{p.name}</h3>
               <p>{p.des}</p>
-              <p><strong>Brand:</strong> {p.brand || 'N/A'}</p> {/* Display brand */}
+              <p><strong>Brand:</strong> {p.brand || 'N/A'}</p>
               <p className="product-price">₹{p.price}</p>
-              <p><strong>Category:</strong> {p.category || 'N/A'}</p>
+              <p><strong>Category:</strong> {getCategoryName(p.category)}</p>
               <div className="btn-group">
                 <button className="btn-edit" onClick={() => handleEdit(p)}>
                   Edit
                 </button>
-                <button className="btn-delete" onClick={() => handleDelete(p.id)}>
+                <button className="btn-delete" onClick={() => handleDelete(p._id)}>
                   Delete
                 </button>
               </div>

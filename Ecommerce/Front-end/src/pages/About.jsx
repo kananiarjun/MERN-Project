@@ -8,7 +8,7 @@ const About = () => {
     <div className="about-title">About Us</div>
 
     <div className="about-section">
-        <p>Welcome to <strong>YourStore</strong>, your trusted destination for quality products at affordable prices. Founded in 2023, we aim to make online shopping easier, faster, and more enjoyable for everyone.</p>
+        <p>Welcome to <strong>Flipkart</strong>, your trusted destination for quality products at affordable prices. Founded in 2023, we aim to make online shopping easier, faster, and more enjoyable for everyone.</p>
     </div>
 
     <div className="about-section">

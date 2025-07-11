@@ -3,7 +3,7 @@ router.post('/:id/review', async (req, res) => {
   const { name, comment } = req.body;
 
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params._id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     product.reviews.push({ name, comment });
